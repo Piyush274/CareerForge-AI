@@ -162,7 +162,8 @@ const navigate = useNavigate()
     const runIntro=async () => {
       setIntroSpoken(true)
       await new Promise((r) => setTimeout(r, 1200));
-      await speakText(`Welcome ${user?.name.split(" ")[0]}! Let's begin your interview.`);
+      const candidateName = user?.name ? user.name.split(" ")[0] : "Candidate";
+      await speakText(`Welcome ${candidateName}! Let's begin your interview.`);
       await new Promise((r) => setTimeout(r, 900));
       await speakText(interviewData.question.question);
     }
@@ -208,6 +209,12 @@ const navigate = useNavigate()
 
     const res = await submitAnswer({ interviewId: interviewData.interviewId, answer:finalAnswer})
 
+    if(!res){
+      setLoading(false);
+      setTimerActive(true);
+      return;
+    }
+
     if(res.completed){
        setFeedback(res.feedback);
         await new Promise((r) => setTimeout(r, 700));
@@ -250,6 +257,13 @@ const navigate = useNavigate()
     setLoading(true)
 
     const res = await submitAnswer({ interviewId: interviewData.interviewId, answer})
+
+    if(!res){
+      setLoading(false);
+      setTimerActive(true);
+      alert("Failed to submit answer. Please try again.");
+      return;
+    }
 
     if(res.completed){
        setFeedback(res.feedback);

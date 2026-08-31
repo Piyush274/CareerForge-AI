@@ -10,8 +10,8 @@ import fs from "fs"
 
 
 export const uploadResume = async (req,res) => {
+    const file = req.file;
     try {
-        const file = req.file;
         if(!file){
             return res.status(400).json({
                 success:false,
@@ -20,7 +20,10 @@ export const uploadResume = async (req,res) => {
         }
         const userId = req.headers["x-user-id"];
 
-          if(!userId){
+        if(!userId){
+            if (fs.existsSync(file.path)) {
+                fs.unlinkSync(file.path);
+            }
             return res.status(400).json({
                 success:false,
                 message:"UserId is required"
@@ -31,7 +34,12 @@ export const uploadResume = async (req,res) => {
 
         const aiResponse = await resumeAgent(resumeText)
 
-        const resumeData = JSON.parse(aiResponse)
+        const cleaned = aiResponse
+            .replace(/```json/g, "")
+            .replace(/```/g, "")
+            .trim();
+
+        const resumeData = JSON.parse(cleaned)
 
         let resume = await Resume.findOne({userId})
 
@@ -53,7 +61,9 @@ export const uploadResume = async (req,res) => {
 
         await redis.set(`resume:${userId}`,JSON.stringify(resume));
 
-        await fs.unlinkSync(file.path);
+        if (fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+        }
 
         return res.status(200).json({
             success:true,
@@ -65,8 +75,12 @@ export const uploadResume = async (req,res) => {
     } catch (error) {
         console.log(error)
 
-        if(file){
-            await fs.unlinkSync(file.path);
+        if(file?.path && fs.existsSync(file.path)){
+            try {
+                fs.unlinkSync(file.path);
+            } catch (unlinkErr) {
+                console.error("Failed to delete temp file:", unlinkErr);
+            }
         }
         return res.status(500).json({
             success:false,

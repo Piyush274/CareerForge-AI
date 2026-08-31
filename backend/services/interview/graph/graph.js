@@ -41,7 +41,8 @@ const graph = new StateGraph(InterviewState)
     router,
     {
        interviewAgent:"interviewAgent" ,
-       feedbackAgent:"feedbackAgent"
+       feedbackAgent:"feedbackAgent",
+       [END]: END
     }
 
 )

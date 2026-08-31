@@ -39,7 +39,7 @@ export const generateRoadmap =async (req,res)=> {
         ...result.roadmap
       })
 
-      await redis.set(`roadmap:${roadmap._id}`,JSON.stringify(roadmap),"EX", 60*60)
+      await redis.set(`roadmap:${userId}:${roadmap._id}`,JSON.stringify(roadmap),"EX", 60*60)
 
       await redis.del(`userRoadmaps:${userId}`)
 
@@ -96,7 +96,7 @@ export const getRoadmapbyId = async (req,res) => {
         const {id} = req.params;
         const userId = req.headers["x-user-id"];
 
-        const cache = await redis.get(`roadmap:${id}`)
+        const cache = await redis.get(`roadmap:${userId}:${id}`)
         if(cache){
             return res.json({
                 success: true,
@@ -118,7 +118,7 @@ export const getRoadmapbyId = async (req,res) => {
             });
         }
 
-        await redis.set(`roadmap:${id}`,JSON.stringify(roadmap),"EX", 60*60)
+        await redis.set(`roadmap:${userId}:${id}`,JSON.stringify(roadmap),"EX", 60*60)
 
         return res.json({
             success: true,

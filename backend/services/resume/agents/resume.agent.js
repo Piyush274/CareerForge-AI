@@ -55,5 +55,8 @@ Response Format:
    new HumanMessage(resumeText),
     ])
 
-    return response.content;
+    return response.content
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
 }

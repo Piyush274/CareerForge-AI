@@ -100,11 +100,25 @@ export const logout = async (req, res) => {
 };
 export const useInterviewCoins = async (req, res) => {
   try {
-const sessionId = req.cookies?.session;
+    const sessionId = req.cookies?.session;
 
-  const session = await redis.get(`session:${sessionId}`)
+    if (!sessionId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized - No session found",
+      });
+    }
 
-  const sessionData = JSON.parse(session);
+    const session = await redis.get(`session:${sessionId}`);
+
+    if (!session) {
+      return res.status(401).json({
+        success: false,
+        message: "Session expired",
+      });
+    }
+
+    const sessionData = JSON.parse(session);
 
     const { coins, action } = req.body;
 

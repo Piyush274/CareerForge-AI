@@ -21,7 +21,8 @@ function Step1setup({ user, setUser }) {
 
     const uploadResume = async () => {
         if (!file) {
-            alert("Please select a PDF")
+            alert("Please select a PDF");
+            return;
         }
         try {
             setUploading(true)
@@ -58,21 +59,21 @@ function Step1setup({ user, setUser }) {
         setStarting(true)
         const response = await startInterview({ role, type, useResume, resume })
 
-        if(response){
-            try {
-                
-            const coinResponse = await useCoins({ coins: 50, action: "start-interview" })
+        if(!response || !response.interviewId){
+            setStarting(false);
+            alert("Failed to generate interview questions. Please try again.");
+            return;
+        }
 
+        try {
+            const coinResponse = await useCoins({ coins: 50, action: "start-interview" })
             setUser((prev) => ({
                 ...prev, interviewCoin: coinResponse?.interviewCoin,
             }))
-            } catch (error) {
-                setStarting(false)
-                alert("Failed to use coins.")
-                return;
-            }
-
-
+        } catch (error) {
+            setStarting(false)
+            alert("Failed to use coins.")
+            return;
         }
 
         setStarting(false)
