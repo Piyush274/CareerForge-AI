@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { getCurrentUser } from './apis/user.api'
+import Home from './pages/Home'
+import Dashboard from './pages/Dashboard'
 import Scorer from './pages/Scorer'
 import { getResume } from './apis/resume.api'
 import { useDispatch } from 'react-redux'
