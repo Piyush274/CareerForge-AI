@@ -51,17 +51,17 @@ function ResumeForm({step , data , setData}) {
   if(step === 1){
     return(
         <div className='flex flex-col gap-3'>
-            <Input label="Full Name" placeholder="Rahul Sharma" onChange={(v)=>setData({...data , name:v})} value={data.name}/>
+            <Input label="Full Name" placeholder="Alex Johnson" onChange={(v)=>setData({...data , name:v})} value={data.name}/>
 
-            <Input label="Email" placeholder="rahul@email.com" onChange={(v) => setData({ ...data, email: v })} value={data.email}/>
+            <Input label="Email" placeholder="alex.johnson@example.com" onChange={(v) => setData({ ...data, email: v })} value={data.email}/>
 
-            <Input label="Phone"  placeholder="+91 9876543210"  onChange={(v) => setData({ ...data, phone: v })} value={data.phone}   />
+            <Input label="Phone"  placeholder="+1 (555) 000-1234"  onChange={(v) => setData({ ...data, phone: v })} value={data.phone}   />
 
-            <Input label="Location" placeholder="Jhansi, UP" onChange={(v) => setData({ ...data, location: v })} value={data.location} />
+            <Input label="Location" placeholder="San Francisco, CA" onChange={(v) => setData({ ...data, location: v })} value={data.location} />
 
-            <Input label="LinkedIn URL" placeholder="linkedin.com/in/rahul" onChange={(v) => setData({ ...data, linkedin: v })} value={data.linkedin} />
+            <Input label="LinkedIn URL" placeholder="linkedin.com/in/alexjohnson" onChange={(v) => setData({ ...data, linkedin: v })} value={data.linkedin} />
 
-            <Input label="GitHub URL" placeholder="github.com/rahul" value={data.github}  onChange={(v) => setData({ ...data, github: v })}/>
+            <Input label="GitHub URL" placeholder="github.com/alexjohnson" value={data.github}  onChange={(v) => setData({ ...data, github: v })}/>
 
         </div>
     )
@@ -185,11 +185,11 @@ function ResumeForm({step , data , setData}) {
 
            {data.projects.map((pro,index)=>(
             <EntryCard key={index} onRemove={()=>removePro(index)}>
-                <Input label="Project Name" placeholder="InterviewIQ" onChange={(v)=>updatePro(index,"name",v)} value={pro.name} />
+                <Input label="Project Name" placeholder="CareerForge AI" onChange={(v)=>updatePro(index,"name",v)} value={pro.name} />
 
                 <Input label="Tech Stack"   value={pro.techStack} onChange={(v) => updatePro(index, "techStack", v)} placeholder="React, Node.js, MongoDB" />
 
-                <Input label="GitHub Link"  value={pro.github}    onChange={(v) => updatePro(index, "github", v)}    placeholder="github.com/rahul/interviewiq" />
+                <Input label="GitHub Link"  value={pro.github}    onChange={(v) => updatePro(index, "github", v)}    placeholder="github.com/alexjohnson/careerforge" />
 
                 <TextArea label="Description" value={pro.description} onChange={(v) => updatePro(index, "description", v)} placeholder="AI-powered interview preparation platform with mock interviews and resume builder." />
 

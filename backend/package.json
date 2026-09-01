@@ -1,15 +1,19 @@
 {
-  "name": "backend",
+  "name": "careerforge-backend",
   "version": "1.0.0",
-  "description": "",
-  "license": "ISC",
-  "author": "",
+  "description": "CareerForge AI Microservices and API Gateway",
+  "license": "MIT",
+  "author": "Piyush",
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "install-all": "npm install && npm --prefix gateway install && npm --prefix services/auth install && npm --prefix services/resume install && npm --prefix services/interview install && npm --prefix services/roadmap install && npm --prefix services/billing install",
+    "dev": "npx concurrently \"npm --prefix gateway dev\" \"npm --prefix services/auth dev\" \"npm --prefix services/resume dev\" \"npm --prefix services/interview dev\" \"npm --prefix services/roadmap dev\" \"npm --prefix services/billing dev\"",
+    "start": "npx concurrently \"npm --prefix gateway start\" \"npm --prefix services/auth start\" \"npm --prefix services/resume start\" \"npm --prefix services/interview start\" \"npm --prefix services/roadmap start\" \"npm --prefix services/billing start\""
   },
   "dependencies": {
+    "concurrently": "^9.1.2",
     "ioredis": "^5.11.1"
   }
 }
+

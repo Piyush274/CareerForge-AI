@@ -24,7 +24,7 @@ function Home({ setUser }) {
                     <div className='w-7 h-7 rounded-lg bg-[#0A0A0A] flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.18)]'>
                         <GiArtificialHive size={15} color='white' /></div>
 
-                    <span className='font-extrabold text-base tracking-tight text-[#0A0A0A]'>FresherAI</span>
+                    <span className='font-extrabold text-base tracking-tight text-[#0A0A0A]'>CareerForge AI</span>
                 </div>
 
                 <motion.button
@@ -183,10 +183,10 @@ function Home({ setUser }) {
                         <GiArtificialHive size={11} color='white'/>
 
                     </div>
-                    <span className='font-bold text-xs text-[#0A0A0A]/70'>FresherAI</span>
+                    <span className='font-bold text-xs text-[#0A0A0A]/70'>CareerForge AI</span>
                 </div>
                 <div className='text-black/50 text-xs'>
-                © {new Date().getFullYear()} Fresher.AI · All rights reserved
+                © {new Date().getFullYear()} CareerForge AI · All rights reserved
                 </div>
 
                 </footer>

@@ -53,7 +53,7 @@ CareerForge AI/
 
 1. **Clone the repository:**
    ```bash
-   git clone <your-repository-url>
+   git clone https://github.com/Piyush274/CareerForge-AI.git
    cd CareerForge-AI
    ```
 
@@ -112,4 +112,5 @@ Never commit `.env` or sensitive credentials. All `.env` files are ignored by de
 ---
 
 ## 📄 License
-ISC License
+MIT License
+

@@ -1,9 +1,9 @@
 {
   "name": "gateway",
   "version": "1.0.0",
-  "description": "",
-  "license": "ISC",
-  "author": "",
+  "description": "CareerForge AI API Gateway",
+  "license": "MIT",
+  "author": "Piyush",
   "type": "module",
   "main": "index.js",
   "scripts": {

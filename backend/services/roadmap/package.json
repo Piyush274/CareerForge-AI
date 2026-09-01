@@ -1,9 +1,9 @@
 {
-  "name": "roadmap",
+  "name": "roadmap-service",
   "version": "1.0.0",
-  "description": "",
-  "license": "ISC",
-  "author": "",
+  "description": "CareerForge AI Career Roadmaps & Learning Resource Finder Service",
+  "license": "MIT",
+  "author": "Piyush",
   "type": "module",
   "main": "index.js",
   "scripts": {
