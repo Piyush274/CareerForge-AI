@@ -62,3 +62,13 @@ Thumbs.db
 # Testing & Coverage
 coverage/
 .nyc_output/
+
+# Interview & Roadmap preparation files
+*interview*.md
+*roadmap*.md
+interview_careerforgeai.md
+careerforgeai_roadmap.md
+
+# Monolith backend (managed in separate repo)
+backend-monolith/
+

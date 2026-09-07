@@ -2,49 +2,49 @@ import { feedbackAgent } from "../agents/feedback.agent.js";
 import { interviewAgent } from "../agents/interview.agent.js";
 import { summaryAgent } from "../agents/summary.agent.js";
 
-
-
 export async function interviewNode(state) {
     const questions = await interviewAgent({
-        role:state.role,
-        type:state.type,
-        useResume:state.useResume,
-        resume:state.resume
-
-    })
+        role: state.role,
+        type: state.type,
+        useResume: state.useResume,
+        resume: state.resume,
+    });
 
     return {
-        questions
-    }
-    
+        questions,
+    };
 }
 
 export async function feedbackNode(state) {
     const feedback = await feedbackAgent({
         question: state.question,
-
         answer: state.answer,
-
         difficulty: state.difficulty,
+    });
 
-    })
+    let updatedQuestions = state.questions;
+    if (Array.isArray(state.questions)) {
+        updatedQuestions = state.questions.map((q) =>
+            q.question === state.question
+                ? { ...q, userAnswer: state.answer, feedback }
+                : q
+        );
+    }
 
     return {
-        feedback
-    }
+        feedback,
+        questions: updatedQuestions,
+    };
 }
-
 
 export async function summaryNode(state) {
     const report = await summaryAgent({
-         role: state.role,
-
+        role: state.role,
         type: state.type,
-
         questions: state.questions,
-    })
+    });
 
     return {
-        report
-    }
-}
+        report,
+    };
+}

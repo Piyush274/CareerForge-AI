@@ -9,7 +9,10 @@
   "scripts": {
     "install-all": "npm install && npm --prefix gateway install && npm --prefix services/auth install && npm --prefix services/resume install && npm --prefix services/interview install && npm --prefix services/roadmap install && npm --prefix services/billing install",
     "dev": "npx concurrently \"npm --prefix gateway dev\" \"npm --prefix services/auth dev\" \"npm --prefix services/resume dev\" \"npm --prefix services/interview dev\" \"npm --prefix services/roadmap dev\" \"npm --prefix services/billing dev\"",
-    "start": "npx concurrently \"npm --prefix gateway start\" \"npm --prefix services/auth start\" \"npm --prefix services/resume start\" \"npm --prefix services/interview start\" \"npm --prefix services/roadmap start\" \"npm --prefix services/billing start\""
+    "start": "npx concurrently \"npm --prefix gateway start\" \"npm --prefix services/auth start\" \"npm --prefix services/resume start\" \"npm --prefix services/interview start\" \"npm --prefix services/roadmap start\" \"npm --prefix services/billing start\"",
+    "sync:monolith": "node ../scripts/sync-to-monolith.js",
+    "sync:watch": "node ../scripts/sync-to-monolith.js --watch",
+    "sync:push": "node ../scripts/sync-to-monolith.js --push"
   },
   "dependencies": {
     "concurrently": "^9.1.2",

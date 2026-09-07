@@ -2,68 +2,33 @@ import { END, START, StateGraph } from "@langchain/langgraph";
 import InterviewState from "./state.js";
 import { feedbackNode, interviewNode, summaryNode } from "./nodes.js";
 
-
-
-function router(state){
-    switch (state.action) {
-
-    case "start":
-      return "interviewAgent";
-
-    case "feedback":
-      return "feedbackAgent";
-
-    default:
-      return END;
-
+function routeInitialAction(state) {
+  if (state.action === "start") {
+    return "generateQuestions";
   }
-}
-
-
-function feedbackRouter(state){
-    if (state.completed) {
-    return "summaryAgent";
+  if (state.action === "feedback") {
+    return "evaluateAnswer";
   }
-
   return END;
 }
 
-
+function routeAfterFeedback(state) {
+  if (state.completed) {
+    return "generateSummary";
+  }
+  return END;
+}
 
 const graph = new StateGraph(InterviewState)
-//nodes
-.addNode("interviewAgent",interviewNode)
-.addNode("feedbackAgent",feedbackNode)
-.addNode("summaryAgent",summaryNode)
-//condition Start
-.addConditionalEdges(
-    START,
-    router,
-    {
-       interviewAgent:"interviewAgent" ,
-       feedbackAgent:"feedbackAgent",
-       [END]: END
-    }
+  .addNode("generateQuestions", interviewNode)
+  .addNode("evaluateAnswer", feedbackNode)
+  .addNode("generateSummary", summaryNode)
+  .addConditionalEdges(START, routeInitialAction)
+  .addEdge("generateQuestions", END)
+  .addConditionalEdges("evaluateAnswer", routeAfterFeedback)
+  .addEdge("generateSummary", END)
+  .compile();
 
-)
-.addEdge(
-    "interviewAgent",
-    END
-)
-.addConditionalEdges(
-    "feedbackAgent",
-    feedbackRouter,
-    {
-        summaryAgent:"summaryAgent",
-        [END]:END
-    }
-)
-.addEdge(
-    "summaryAgent",
-    END
-)
-.compile()
+export default graph;
 
-
-export default graph
 

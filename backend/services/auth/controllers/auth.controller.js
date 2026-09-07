@@ -14,6 +14,13 @@ export const login = async (req, res) => {
 
     const { token } = req.body;
 
+    if (!app) {
+      return res.status(500).json({
+        success: false,
+        message: "Firebase Admin is not configured. Please set FIREBASE_SERVICE_ACCOUNT in server environment variables.",
+      });
+    }
+
     const decoded = await getAuth(app).verifyIdToken(token);
 
     let user = await User.findOne({
@@ -28,7 +35,7 @@ export const login = async (req, res) => {
 
         email: decoded.email,
 
-        name: decoded.name
+        name: decoded.name || decoded.email?.split("@")[0] || "User"
 
       });
 
