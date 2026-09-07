@@ -2,27 +2,25 @@ import React from 'react'
 import { AnimatePresence, motion } from "motion/react"
 import { GiArtificialHive, GiTwoCoins } from 'react-icons/gi'
 import { FiFileText, FiLogOut, FiMap, FiPlus, FiSidebar, FiStar } from 'react-icons/fi'
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import { FaCirclePlus } from "react-icons/fa6";
 
 const NAV_ITEMS = [
     {
         icon: <FiFileText size={15} />,
-        label: "Resume Builder",
+        label: "Resume Builder Agent",
         path: "/resume",
     },
     {
         icon: <FiStar size={15} />,
-        label: "Resume Scorer",
+        label: "Resume Scorer Agent",
         path: "/scorer",
     },
     {
         icon: <FiMap size={15} />,
-        label: "Roadmap Builder",
+        label: "Roadmap Builder Agent",
         path: "/roadmap",
     },
-
-
 ];
 
 function Sidebar({
@@ -35,15 +33,17 @@ function Sidebar({
     setMoblieOpen
 }) {
     const navigate = useNavigate()
+    const location = useLocation()
     const avatar = user?.name ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "U"
-
 
     const inner = (
         <div className='flex flex-col h-full'>
             <div className={`px-3 h-[52px] border-b border-black/8 shrink-0 flex items-center ${sidebarOpen ? "justify-between" : "justify-center"
                 }`}>
                 {sidebarOpen && (
-                    <div className='flex items-center gap-2.5'>
+                    <div 
+                        onClick={() => navigate('/dashboard')}
+                        className='flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity'>
                         <div className='w-7 h-7 rounded-lg bg-[#000000] flex items-center justify-center shrink-0 shadow-[0_4px_14px_rgba(0,0,0,0.25)]'><GiArtificialHive size={19} color='white' /></div>
                         <motion.span
                             initial={{ opacity: 0, x: -6 }}
@@ -111,26 +111,32 @@ function Sidebar({
             </AnimatePresence>
 
             <nav className='flex flex-col gap-0.5 px-2.5 flex-1'>
-                {NAV_ITEMS.map((nav, i) => (
-                    <motion.button key={i}
-                        onClick={() => {
-                            navigate(nav.path);
-                            setMoblieOpen(false)
-                        }}
-                        whileHover={{ x: sidebarOpen ? 3 : 0 }}
-                        transition={{ duration: 0.13 }}
-                        className={`flex items-center gap-2.5 rounded-lg py-2 transition-all text-xs font-medium text-black/45 hover:text-[#0A0A0A] hover:bg-black/5 cursor-pointer ${sidebarOpen ? "px-2.5 " : "justify-center px-0"
-                            }`}>
-                        <span className='shrink-0'>{nav.icon}</span>
+                {NAV_ITEMS.map((nav, i) => {
+                    const isActive = location.pathname === nav.path;
+                    return (
+                        <motion.button key={i}
+                            onClick={() => {
+                                navigate(nav.path);
+                                setMoblieOpen(false)
+                            }}
+                            whileHover={{ x: sidebarOpen ? 3 : 0 }}
+                            transition={{ duration: 0.13 }}
+                            title={!sidebarOpen ? nav.label : undefined}
+                            className={`flex items-center gap-2.5 rounded-lg py-2 transition-all text-xs cursor-pointer ${
+                                isActive 
+                                    ? "bg-black/8 text-[#0A0A0A] font-semibold shadow-xs" 
+                                    : "text-black/50 font-medium hover:text-[#0A0A0A] hover:bg-black/5"
+                            } ${sidebarOpen ? "px-2.5 " : "justify-center px-0"
+                                }`}>
+                            <span className={`shrink-0 ${isActive ? "text-[#0A0A0A]" : "text-black/40"}`}>{nav.icon}</span>
 
-                        {sidebarOpen &&
-                            <span className='whitespace-nowrap'>{nav.label}
-                            </span>}
+                            {sidebarOpen &&
+                                <span className='whitespace-nowrap'>{nav.label}
+                                </span>}
 
-
-
-                    </motion.button>
-                ))}
+                        </motion.button>
+                    );
+                })}
 
             </nav>
 
