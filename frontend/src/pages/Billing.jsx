@@ -1,204 +1,179 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from "motion/react"
-import { useState } from 'react'
-import { FiMenu, FiX } from 'react-icons/fi'
+import { FiArrowLeft, FiInfo, FiZap } from 'react-icons/fi'
 import { GiTwoCoins } from 'react-icons/gi'
 import PricingCard from '../components/PricingCard'
 import api from '../utils/axios'
 import { useNavigate } from 'react-router-dom'
 
 const plan = [
-    {
-        title: "Free",
-        price: "Free",
-        coins: 150,
-        button: "Claimed Coins",
-        popular: false,
-        disabled: true,
-        features: [
-            "150 Interview Coins",
-            "Resume Builder",
-            "Resume Scorer",
-            "Roadmap Generator",
-        ],
-    },
-    {
-        title: "Starter",
-        price: "199",
-        coins: 300,
-        button: "Buy Now",
-        popular: true,
-        disabled: false,
-        features: [
-            "300 Interview Coins",
-            "Unlimited Resume Score",
-            "Unlimited Roadmaps",
-            "Priority AI Response",
-        ],
-    },
+  {
+    title: "Free",
+    price: "Free",
+    coins: 150,
+    button: "Claimed Initial Coins",
+    popular: false,
+    disabled: true,
+    features: [
+      "150 Complimentary Credits",
+      "Full Resume ATS Scanner",
+      "Basic AI Code Practice",
+      "Career Roadmap Generator",
+    ],
+  },
+  {
+    title: "Starter",
+    price: "199",
+    coins: 300,
+    button: "Top Up 300 Credits",
+    popular: true,
+    disabled: false,
+    features: [
+      "300 Multi-Agent Interview Credits",
+      "Unlimited Resume ATS Rescans",
+      "Priority Low-Latency Audio Stream",
+      "Detailed Diagnostic Scorecards",
+    ],
+  },
 ];
+
+const CREDIT_COSTS = [
+  { name: "Resume ATS Scorer", cost: "10 Credits", desc: "Full structural & keyword audit" },
+  { name: "Career Roadmap Generator", cost: "20 Credits", desc: "Customized multi-phase skill tree" },
+  { name: "Live AI Interview Session", cost: "50 Credits", desc: "Full voice, IDE, and multi-agent rubric report" },
+];
+
 function Billing({ user, setUser }) {
-    const [showMenu, setShowMenu] = useState(false)
+  const navigate = useNavigate();
 
-    const navigate = useNavigate()
-    const handlePayment = async (plan) => {
-        if (plan.disabled) return;
-        try {
-            const result = await api.post("/api/billing/create",
-                { planId: plan.title.toLowerCase() })
+  const handlePayment = async (plan) => {
+    if (plan.disabled) return;
+    try {
+      const result = await api.post("/api/billing/create", { planId: plan.title.toLowerCase() });
 
-            const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-                amount: result.data.order.amount,
-                currency: result.data.order.currency,
-                name: "CareerForge AI",
-                description: `${plan.title} - ${plan.coins} Interview Coins`,
-                order_id: result.data.order.id,
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: result.data.order.amount,
+        currency: result.data.order.currency,
+        name: "CareerForge AI",
+        description: `${plan.title} - ${plan.coins} Interview Credits`,
+        order_id: result.data.order.id,
+        handler: async function (response) {
+          try {
+            await api.post("/api/billing/verify", response);
+            const coinRes = await api.post("/api/auth/add-coins", { coins: plan.coins });
+            setUser((prev) => ({
+              ...prev,
+              interviewCoin: coinRes.data.interviewCoin,
+            }));
+            alert("Credits successfully added! 🎉");
+            navigate("/dashboard");
+          } catch (error) {
+            console.error(error);
+            alert(error?.response?.data?.message || "Payment verification failed");
+          }
+        },
+        theme: {
+          color: "#6366F1",
+        },
+      };
 
-                handler: async function (response) {
-                    try {
-                        await api.post("/api/billing/verify", response)
-
-                        const coinRes = await api.post("/api/auth/add-coins", { coins: plan.coins })
-
-                        setUser((prev) => ({
-                            ...prev, interviewCoin: coinRes.data.interviewCoin
-                        }))
-
-                        alert("Payment Successful 🎉")
-                        navigate("/dashboard")
-
-                    } catch (error) {
-                        console.log(error);
-
-                        alert(
-                            error?.response?.data?.message ||
-                            "Payment verification failed"
-                        );
-                    }
-
-                },
-
-
-                theme: {
-                    color: "#000000",
-                },
-
-            }
-
-
-            const razorpay = new window.Razorpay(options);
-            razorpay.open()
-
-
-        } catch (error) {
-            console.log(error)
-        }
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error) {
+      console.error(error);
     }
-    return (
-        <div className='min-h-screen bg-white text-[#0A0A0A]'>
-            <motion.nav
-                initial={{ y: -60, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className='sticky top-0 z-20 border-b border-black/8 bg-white/80 backdrop-blur-xl'>
-                <div className='mx-auto flex h-12 max-w-7xl items-center justify-between px-3 sm:px-5'>
-                    <div onClick={() => navigate("/dashboard")}
-                        className='flex cursor-pointer items-center gap-1.5'>
-                        <span className='text-sm font-extrabold sm:text-base text-[#0A0A0A]'>CareerForge AI</span>
-                        <span className='hidden rounded bg-black/5 px-1.5 py-0.5 text-[10px] text-black/50 sm:block'>Interview Coins</span>
-                    </div>
+  };
 
-                    <button onClick={() => setShowMenu(!showMenu)} className='flex h-8 w-8 items-center justify-center rounded-lg border border-black/15 text-black/60 transition hover:border-black/35 hover:text-[#0A0A0A]'>
-                        {showMenu ? <FiX size={16} /> : <FiMenu size={16} />}
+  return (
+    <div className='min-h-screen bg-[#07090E] text-[#F1F5F9] font-sans pb-16'>
+      {/* Top Navbar */}
+      <motion.nav
+        initial={{ y: -30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        className='sticky top-0 z-30 border-b border-white/8 bg-[#07090E]/80 backdrop-blur-xl h-14 flex items-center'
+      >
+        <div className='mx-auto flex w-full max-w-6xl items-center justify-between px-4 sm:px-6'>
+          <div 
+            onClick={() => navigate("/dashboard")}
+            className='flex cursor-pointer items-center gap-2'
+          >
+            <span className='text-sm font-display font-extrabold text-white'>CareerForge AI</span>
+            <span className='rounded bg-indigo-500/15 border border-indigo-500/30 px-2 py-0.5 text-[10px] font-mono text-indigo-300'>
+              Billing &amp; Credits
+            </span>
+          </div>
 
-
-                    </button>
-
-                    {showMenu && (
-                        <>
-                            <div onClick={() => setShowMenu(false)} className='fixed inset-0 z-30 bg-black/20 lg:hidden' />
-
-                            <div className='absolute right-1 top-11 z-40 w-[240px] max-w-[calc(100vw-24px)] rounded-xl overflow-hidden bg-[#000000]/90 backdrop-blur-2xl border border-white/10 p-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.25)]'>
-                                <div className='absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent pointer-events-none' />
-
-                                <div className='relative flex items-center gap-2 border-b border-white/10 pb-3'>
-
-                                    <div className='flex h-9 w-9 items-center justify-center rounded-lg bg-yellow-500/15 border border-yellow-400/20'>
-                                        <GiTwoCoins className='text-yellow-400 text-sm' />
-                                    </div>
-
-                                    <div>
-                                        <p className="text-[10px] text-white/40">
-                                            Available Coins
-                                        </p>
-                                        <h3 className='text-lg font-bold text-white'>{user?.interviewCoin}</h3>
-                                    </div>
-
-                                </div>
-
-                                <div className='relative mt-3.5 space-y-1.5'>
-                                    {[
-                                        { title: "Resume Builder", coin: "-10" },
-                                        { title: "Resume Scorer", coin: "-10" },
-                                        { title: "Roadmap Generator", coin: "-20" },
-                                        { title: "AI Interview", coin: "-50" },
-                                    ].map((item) => (
-                                        <div key={item.title} className='flex items-center justify-between rounded-lg bg-white/5 border border-white/8 px-2.5 py-1.5'>
-                                            <span className="text-xs text-white/70">
-                                                {item.title}
-                                            </span>
-                                            <span className="text-xs font-bold text-red-400">
-                                                {item.coin}
-                                            </span>
-
-                                        </div>
-                                    ))}
-
-                                </div>
-
-                                <div className='relative mt-3.5 rounded-lg border border-violet-400/20 bg-violet-500/10 p-2.5'>
-                                    <p className="text-[10px] leading-4 text-violet-300">
-                                        Every AI feature uses Interview Coins.
-                                        Buy more coins anytime to continue using
-                                        Resume Builder, Resume Scorer,
-                                        AI Interview and Roadmap Generator.
-                                    </p>
-
-                                </div>
-                            </div>
-
-                        </>
-                    )}
-
-                </div>
-
-            </motion.nav>
-
-            <div className='mx-auto max-w-4xl px-4 py-6'>
-
-                <div className='text-center'>
-                    <h1 className="text-3xl font-bold text-[#0A0A0A]">
-                        Interview Coins
-                    </h1>
-                    <p className="mt-2 text-sm text-black/45">
-                        Use coins for Resume Scoring, Resume Builder, AI Interviews, and Roadmap Generation.
-                    </p>
-                </div>
-
-                <div className='mt-8 grid place-items-center gap-3 md:grid-cols-2'>
-                    {plan.map((plan) => (
-                        <PricingCard key={plan.title}
-                            {...plan}
-                            onBuy={() => handlePayment(plan)} />
-                    ))
-                    }
-
-                </div>
+          <div className='flex items-center gap-4'>
+            <div className='flex items-center gap-2 px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/20'>
+              <GiTwoCoins className='text-amber-400' size={15} />
+              <span className='text-xs font-mono font-bold text-amber-200'>
+                {user?.interviewCoin ?? 0} Credits
+              </span>
             </div>
 
+            <button
+              onClick={() => navigate("/dashboard")}
+              className='text-xs text-slate-400 hover:text-white flex items-center gap-1 transition-colors cursor-pointer'
+            >
+              <FiArrowLeft size={13} />
+              <span>Dashboard</span>
+            </button>
+          </div>
         </div>
-    )
+      </motion.nav>
+
+      {/* Hero Section */}
+      <div className='max-w-5xl mx-auto px-4 pt-12 sm:pt-16 text-center'>
+        <span className='text-xs font-mono text-indigo-400 uppercase tracking-wider block mb-2'>
+          TRANSPARENT USAGE CREDITS
+        </span>
+        <h1 className='text-3xl sm:text-4xl font-display font-extrabold text-white tracking-tight'>
+          Power Your Interview Simulation Engine
+        </h1>
+        <p className='text-xs sm:text-sm text-slate-400 max-w-xl mx-auto mt-2'>
+          Interview credits are only deducted upon successful session generation. Never worry about surprise monthly recurring bills.
+        </p>
+
+        {/* Pricing Cards Grid */}
+        <div className='mt-12 flex flex-wrap justify-center gap-6'>
+          {plan.map((p) => (
+            <PricingCard
+              key={p.title}
+              {...p}
+              onBuy={() => handlePayment(p)}
+            />
+          ))}
+        </div>
+
+        {/* Credit Breakdown Table */}
+        <div className='mt-16 max-w-2xl mx-auto text-left'>
+          <div className='p-6 rounded-3xl bg-[#0B0F17] border border-white/10'>
+            <div className='flex items-center gap-2 mb-4'>
+              <FiInfo className='text-indigo-400' size={16} />
+              <h3 className='text-sm font-display font-bold text-white'>Feature Credit Consumption Rates</h3>
+            </div>
+
+            <div className='space-y-3'>
+              {CREDIT_COSTS.map((item, idx) => (
+                <div key={idx} className='p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-between'>
+                  <div>
+                    <p className='text-xs font-semibold text-slate-200'>{item.name}</p>
+                    <p className='text-[11px] text-slate-500'>{item.desc}</p>
+                  </div>
+                  <span className='font-mono text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg'>
+                    {item.cost}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
 }
 
-export default Billing
+export default Billing;

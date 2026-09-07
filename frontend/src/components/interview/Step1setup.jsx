@@ -1,285 +1,343 @@
+import React, { useState } from 'react'
 import { motion } from "motion/react"
-import { FiArrowLeft, FiArrowRight, FiBriefcase, FiCheck, FiCheckCircle, FiFileText, FiUploadCloud } from 'react-icons/fi'
+import { FiArrowLeft, FiArrowRight, FiBriefcase, FiCheck, FiCheckCircle, FiFileText, FiUploadCloud, FiCpu, FiAward, FiShield } from 'react-icons/fi'
+import { GiTwoCoins, GiArtificialHive } from 'react-icons/gi'
 import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { deductCoins } from '../../apis/user.api'
 import api from '../../utils/axios'
 import { setResume } from '../../redux/resumeSlice'
 import { startInterview } from '../../apis/interview.api'
+
+const QUICK_ROLES = [
+  "Senior Frontend Engineer",
+  "Backend / Distributed Systems",
+  "Fullstack Developer",
+  "AI / ML Engineer",
+  "Engineering Manager"
+];
+
 function Step1setup({ user, setUser }) {
-    const navigate = useNavigate()
-    const dispatch = useDispatch()
-    const { resume } = useSelector((state) => state.resume)
-    const [role, setRole] = useState("");
-    const [type, setType] = useState("technical");
-    const [useResume, setUseResume] = useState(!!resume)
-    const [file, setFile] = useState(null)
-    const [uploading, setUploading] = useState(false)
-    const [starting, setStarting] = useState(false)
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { resume } = useSelector((state) => state.resume);
+  const [role, setRole] = useState(resume?.suggestedRole || "Backend Engineer");
+  const [type, setType] = useState("technical");
+  const [useResume, setUseResume] = useState(!!resume);
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [starting, setStarting] = useState(false);
 
-    const uploadResume = async () => {
-        if (!file) {
-            alert("Please select a PDF");
-            return;
-        }
-        try {
-            setUploading(true)
-            try {
-                
-            const coinResponse = await deductCoins({ coins: 10, action: "resume-scorer" })
+  const uploadResume = async () => {
+    if (!file) {
+      alert("Please select a PDF");
+      return;
+    }
+    try {
+      setUploading(true);
+      try {
+        const coinResponse = await deductCoins({ coins: 10, action: "resume-scorer" });
+        setUser((prev) => ({
+          ...prev,
+          interviewCoin: coinResponse?.interviewCoin,
+        }));
+      } catch {
+        setUploading(false);
+        alert("Failed to use coins. Please ensure you have sufficient credits.");
+        return;
+      }
 
-            setUser((prev) => ({
-                ...prev, interviewCoin: coinResponse?.interviewCoin,
-            }))
-            } catch {
-                setUploading(false)
-                alert("Failed to use coins.")
-                return;
-            }
+      const formData = new FormData();
+      formData.append("resume", file);
 
+      const response = await api.post("/api/resume/upload", formData);
+      dispatch(setResume(response?.data?.data));
+      setUploading(false);
+      setFile(null);
+    } catch (error) {
+      console.error(error);
+      alert("Resume upload failed. Please try again.");
+      setUploading(false);
+    }
+  };
 
-            const formData = new FormData()
-            formData.append("resume", file)
+  const start = async () => {
+    if (!role.trim()) return;
+    setStarting(true);
+    const response = await startInterview({ role, type, useResume, resume });
 
-            const response = await api.post("/api/resume/upload", formData)
-
-            dispatch(setResume(response?.data?.data))
-            setUploading(false)
-            setFile(null)
-        } catch (error) {
-            console.log(error)
-            alert("Upload failed")
-            setUploading(false)
-        }
+    if (!response || !response.interviewId) {
+      setStarting(false);
+      alert("Failed to generate interview questions. Please try again.");
+      return;
     }
 
-    const start = async () => {
-        setStarting(true)
-        const response = await startInterview({ role, type, useResume, resume })
-
-        if(!response || !response.interviewId){
-            setStarting(false);
-            alert("Failed to generate interview questions. Please try again.");
-            return;
-        }
-
-        try {
-            const coinResponse = await deductCoins({ coins: 50, action: "start-interview" })
-            setUser((prev) => ({
-                ...prev, interviewCoin: coinResponse?.interviewCoin,
-            }))
-        } catch {
-            setStarting(false)
-            alert("Failed to use coins.")
-            return;
-        }
-
-        setStarting(false)
-        navigate(`/interview/${response.interviewId}`)
-
+    try {
+      const coinResponse = await deductCoins({ coins: 50, action: "start-interview" });
+      setUser((prev) => ({
+        ...prev,
+        interviewCoin: coinResponse?.interviewCoin,
+      }));
+    } catch {
+      setStarting(false);
+      alert("Failed to use coins.");
+      return;
     }
 
-    return (
-        <div className='min-h-screen bg-white flex items-center justify-center p-3 sm:p-5'>
-            <motion.div
-                initial={{ opacity: 0, y: 25 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45 }}
-                className='w-full max-w-4xl bg-[#0E1016] border border-white/10 rounded-2xl sm:rounded-[24px] overflow-hidden grid lg:grid-cols-[40%_60%] shadow-[0_0_60px_rgba(255,255,255,.03)]'>
+    setStarting(false);
+    navigate(`/interview/${response.interviewId}`);
+  };
 
-                {/* left */}
+  return (
+    <div className='min-h-screen bg-[#07090E] text-[#F1F5F9] font-sans flex items-center justify-center p-4 sm:p-6 relative overflow-hidden'>
+      {/* Background Glow */}
+      <div className='absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-indigo-500/10 blur-[130px] pointer-events-none' />
 
-                <div className='p-5 sm:p-7 border-b lg:border-b-0 lg:border-r border-white/5 flex flex-col justify-start gap-4'>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className='w-full max-w-5xl bg-[#0B0F17] border border-white/10 rounded-3xl overflow-hidden grid lg:grid-cols-[40%_60%] shadow-[0_25px_80px_rgba(0,0,0,0.7)] relative'
+      >
+        {/* Left Column: Context & Overview */}
+        <div className='p-6 sm:p-8 border-b lg:border-b-0 lg:border-r border-white/8 bg-[#090D15]/80 flex flex-col justify-between gap-6'>
+          <div>
+            <button
+              onClick={() => navigate("/dashboard")}
+              className='inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer'
+            >
+              <FiArrowLeft size={13} />
+              <span>Back to Dashboard</span>
+            </button>
 
-                    <div>
-                        <div onClick={() => navigate("/dashboard")} className='inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 cursor-pointer'>
-                            <FiArrowLeft size={12} />
-                            <span className='text-xs text-zinc-300'>Back</span>
-                        </div>
-                        <h2 className='mt-4 text-xl sm:text-2xl font-bold text-white leading-snug'>
-                            WelCome back,<br />
-                            {user?.name}
-                        </h2>
+            <div className='mt-6'>
+              <div className='w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-3'>
+                <GiArtificialHive size={20} />
+              </div>
+              <h2 className='text-2xl font-display font-extrabold text-white tracking-tight'>
+                Configure Interview Session
+              </h2>
+              <p className='mt-2 text-xs text-slate-400 leading-relaxed'>
+                Our multi-agent orchestrator generates tailored problem sets matching actual interview rubrics from Tier-1 tech companies.
+              </p>
+            </div>
 
-                        <p className='mt-2 text-xs sm:text-sm leading-6 text-zinc-400'>
-                            Practice realistic AI interviews, receive instant feedback,
-                            and improve before your next job interview.
-                        </p>
-                    </div>
-
-                    <div className='space-y-2 sm:space-y-3'>
-                        {[
-                            "Personalized AI Questions",
-                            "Resume Based Interview",
-                            "Detailed Performance Report",
-                            "Real Interview Experience",
-                        ].map((item, index) => (
-                            <motion.div key={index} whileHover={{ x: 4 }} className='flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.03] p-3'>
-                                <div className='w-7 h-7 shrink-0 rounded-lg bg-white flex items-center justify-center'><FiCheck className='text-black' size={13} /></div>
-                                <span className='text-xs sm:text-sm text-zinc-300'>{item}</span>
-
-                            </motion.div>
-                        ))
-
-                        }
-                    </div>
-
+            {/* Feature Checkpoints */}
+            <div className='space-y-2.5 mt-6'>
+              {[
+                { title: "Dynamic Monaco IDE & Code Evaluator", desc: "For DSA, concurrency & system algorithms" },
+                { title: "Audio Speech Synthesizer & Speech Recognition", desc: "Real-time AI voice interviewer" },
+                { title: "Multi-Axis Rubric Telemetry", desc: "Comprehensive diagnostic report card" },
+              ].map((item, idx) => (
+                <div key={idx} className='p-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-start gap-3'>
+                  <div className='w-5 h-5 rounded-md bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 mt-0.5'>
+                    <FiCheck size={12} />
+                  </div>
+                  <div>
+                    <p className='text-xs font-semibold text-slate-200'>{item.title}</p>
+                    <p className='text-[11px] text-slate-500'>{item.desc}</p>
+                  </div>
                 </div>
+              ))}
+            </div>
+          </div>
 
-                {/* right */}
-                <div className='p-5 sm:p-7 flex flex-col'>
-                    <div>
-                        <h2 className='text-lg sm:text-xl font-semibold text-white'>
-                            Start Interview
-                        </h2>
-                        <p className='mt-1 text-xs text-zinc-500'>
-                            Configure your interview preferences.
-                        </p>
-                    </div>
-
-                    <div className='mt-5 flex-1 space-y-4 overflow-y-auto'>
-
-                        {/* role */}
-                        <div>
-                            <label className='text-xs font-medium text-zinc-400'>Target Role</label>
-                            <div className='mt-1.5 relative'>
-                                <FiBriefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={14} />
-                                <input type="text"
-                                    onChange={(e) => setRole(e.target.value)}
-                                    value={role}
-                                    placeholder='Backend Developer'
-                                    className='w-full h-11 rounded-xl bg-[#17181E] border border-white/10 pl-10 pr-4 text-sm text-white outline-none focus:border-white/30 transition' />
-                            </div>
-                        </div>
-
-                        {/* type */}
-
-                        <div>
-                            <label className='text-xs font-medium text-zinc-400'>Interview Type</label>
-                            <div className='mt-1.5 flex rounded-xl bg-[#17181E] p-1 border border-white/10'>
-                                {
-                                    ["technical", "hr"].map((item) => (
-                                        <button key={item}
-                                            onClick={() => setType(item)}
-                                            className={`flex-1 h-9 rounded-lg text-xs sm:text-sm font-medium capitalize transition-all ${type === item ? "bg-white text-black" : "text-zinc-400 hover:text-white"
-                                                }`} >
-                                            {item}
-                                        </button>
-                                    ))
-                                }
-
-                            </div>
-                        </div>
-
-                        {/* resume toggle */}
-
-                        <div className='rounded-xl border border-white/10 bg-[#17181E] p-4'>
-                            <div className='flex items-center justify-between '>
-                                <div>
-                                    <h2 className='text-sm font-medium text-white'>Use Resume</h2>
-                                    <p className='mt-0.5 text-xs text-zinc-500'>
-                                        AI will personalize questions using your resume.
-                                    </p>
-                                </div>
-                                <button onClick={() => setUseResume(!useResume)} className={`relative shrink-0 w-12 h-7 rounded-full transition ${useResume ? "bg-white" : "bg-zinc-700"}`}>
-                                    <div className={`absolute top-0.5 w-6 h-6 rounded-full bg-black transition-all ${useResume ? "left-5.5" : "left-0.5"}`} />
-                                </button>
-
-
-                            </div>
-
-                        </div>
-
-
-                        {resume && useResume && (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-
-                                className='rounded-xl border border-green-500/20 bg-green-500/5 p-4'>
-                                <div className='flex items-center gap-3'>
-
-                                    <div className='w-9 h-9 shrink-0 rounded-lg bg-green-500 flex items-center justify-center'>
-                                        <FiFileText size={15} className='text-white' />
-                                    </div>
-                                    <div className='flex-1 min-w-0'>
-                                        <h4 className='text-sm font-semibold text-white'>Resume Ready <span className='text-gray-400'>({resume?.suggestedRole})</span></h4>
-                                        <p className='text-xs text-zinc-400'>
-                                            Resume detected successfully.
-                                        </p>
-                                    </div>
-                                    <FiCheckCircle size={18} className='text-green-400 shrink-0' />
-
-                                </div>
-
-                            </motion.div>
-                        )}
-
-                        {
-                            useResume && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className='rounded-xl border-2 border-dashed border-white/10 bg-[#17181E] p-4'>
-
-                                    <label className='cursor-pointer flex flex-col items-center'>
-                                        <div className='w-11 h-11 rounded-xl bg-white flex items-center justify-center'><FiUploadCloud size={20} className='text-black' /></div>
-                                        <h3 className='mt-3 text-sm font-semibold text-white'>Upload Resume</h3>
-                                        <p className='mt-1 text-xs text-zinc-500 text-center'>
-                                            {resume
-                                                ? "Resume detected. Upload a new resume anytime to update your interview questions."
-                                                : "Upload your resume to generate personalized interview questions."
-                                            }
-                                        </p>
-                                        <input type="file" className='hidden' accept='.pdf'
-                                            onChange={(e) => { if (e.target.files[0]) setFile(e.target.files[0]) }} />
-
-                                    </label>
-
-                                    {file && (
-                                        <div className='mt-4'>
-                                            <div className='rounded-lg bg-black/20 border border-white/10 p-2.5'>
-                                                <p className='text-xs text-zinc-300 truncate'>{file.name}</p>
-                                            </div>
-
-                                            <button
-                                                onClick={uploadResume}
-                                                disabled={uploading}
-                                                className='mt-3 w-full h-10 rounded-xl bg-white text-black text-sm font-semibold hover:opacity-90 transition disabled:opacity-60'>
-                                                {uploading ? "Uploading..." : "Upload"}
-                                            </button>
-
-
-
-                                        </div>
-                                    )}
-
-                                </motion.div>
-                            )
-                        }
-                    </div>
-
-                    <motion.button
-                    onClick={start}
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.98 }}
-                        disabled={!role || starting || (useResume && !resume)}
-                        className='mt-5 h-12 rounded-xl bg-white text-black text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-40 transition'>
-                        {starting ? "Starting Interview..." : (
-                            <>Start Interview <FiArrowRight size={15} /></>
-                        )}
-
-                    </motion.button>
-
-                </div>
-
-
-            </motion.div>
-
-
+          {/* Coin Cost Info */}
+          <div className='p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between'>
+            <div className='flex items-center gap-2.5'>
+              <GiTwoCoins size={18} className='text-amber-400' />
+              <div>
+                <span className='text-[10px] uppercase font-mono text-amber-300 block'>Session Cost</span>
+                <span className='text-xs font-bold font-mono text-amber-200'>50 Credits</span>
+              </div>
+            </div>
+            <span className='text-[11px] font-mono text-slate-400'>
+              Balance: <strong className='text-white'>{user?.interviewCoin ?? 0}</strong>
+            </span>
+          </div>
         </div>
-    )
+
+        {/* Right Column: Preferences Form */}
+        <div className='p-6 sm:p-8 flex flex-col justify-between bg-[#0B0F17]'>
+          <div>
+            <div className='flex items-center justify-between mb-5'>
+              <div>
+                <h3 className='text-lg font-display font-bold text-white'>
+                  Interview Parameters
+                </h3>
+                <p className='text-xs text-slate-400'>
+                  Customize your role, discipline, and contextual resume data.
+                </p>
+              </div>
+            </div>
+
+            <div className='space-y-5'>
+              {/* Target Role Field */}
+              <div>
+                <label className='text-xs font-mono font-medium text-slate-300 flex items-center justify-between mb-2'>
+                  <span>TARGET ROLE</span>
+                  <span className='text-[11px] text-indigo-400 font-sans'>Required</span>
+                </label>
+                <div className='relative'>
+                  <FiBriefcase className='absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500' size={15} />
+                  <input
+                    type='text'
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    placeholder='e.g., Senior Fullstack Engineer'
+                    className='w-full h-11 rounded-xl bg-[#101522] border border-white/10 pl-10 pr-4 text-xs font-medium text-white placeholder-slate-500 outline-none focus:border-indigo-500/50 transition-all'
+                  />
+                </div>
+
+                {/* Quick Role Suggestions */}
+                <div className='flex flex-wrap gap-1.5 mt-2'>
+                  {QUICK_ROLES.map((r) => (
+                    <button
+                      key={r}
+                      type='button'
+                      onClick={() => setRole(r)}
+                      className={`text-[10px] px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                        role === r
+                          ? "bg-indigo-600/30 text-indigo-300 border-indigo-500/40"
+                          : "bg-white/[0.03] text-slate-400 border-white/5 hover:text-white hover:bg-white/[0.06]"
+                      }`}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Interview Type Selector */}
+              <div>
+                <label className='text-xs font-mono font-medium text-slate-300 block mb-2'>
+                  EVALUATION DISCIPLINE
+                </label>
+                <div className='grid grid-cols-2 gap-2 p-1 bg-[#101522] rounded-xl border border-white/8'>
+                  <button
+                    type='button'
+                    onClick={() => setType("technical")}
+                    className={`h-10 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                      type === "technical"
+                        ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    <FiCpu size={14} /> Technical &amp; Coding
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => setType("hr")}
+                    className={`h-10 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                      type === "hr"
+                        ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    <FiAward size={14} /> HR &amp; Behavioral
+                  </button>
+                </div>
+              </div>
+
+              {/* Resume Personalization Switch */}
+              <div className='p-4 rounded-xl bg-[#101522] border border-white/8'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <h4 className='text-xs font-semibold text-white'>Tailor with Uploaded Resume</h4>
+                    <p className='text-[11px] text-slate-400 mt-0.5'>
+                      AI extracts your verified project tech stack and career background.
+                    </p>
+                  </div>
+                  <button
+                    type='button'
+                    onClick={() => setUseResume(!useResume)}
+                    className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer ${
+                      useResume ? "bg-indigo-600" : "bg-slate-700"
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
+                        useResume ? "translate-x-5.5" : "translate-x-0.5"
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Upload or Detected resume */}
+                {useResume && (
+                  <div className='mt-4 pt-3 border-t border-white/5'>
+                    {resume ? (
+                      <div className='flex items-center justify-between p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20'>
+                        <div className='flex items-center gap-2.5'>
+                          <div className='w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center'>
+                            <FiFileText size={15} />
+                          </div>
+                          <div>
+                            <p className='text-xs font-semibold text-white'>Resume Linked</p>
+                            <p className='text-[10px] text-slate-400 font-mono'>{resume?.suggestedRole || "Verified Profile"}</p>
+                          </div>
+                        </div>
+                        <FiCheckCircle size={16} className='text-emerald-400' />
+                      </div>
+                    ) : (
+                      <div className='p-4 rounded-xl border border-dashed border-white/15 bg-black/20 text-center'>
+                        <label className='cursor-pointer flex flex-col items-center'>
+                          <FiUploadCloud size={22} className='text-indigo-400 mb-2' />
+                          <span className='text-xs font-semibold text-slate-200'>Upload PDF Resume</span>
+                          <span className='text-[10px] text-slate-400 mt-0.5'>10 credits will be used for ATS parsing</span>
+                          <input
+                            type='file'
+                            className='hidden'
+                            accept='.pdf'
+                            onChange={(e) => {
+                              if (e.target.files[0]) setFile(e.target.files[0]);
+                            }}
+                          />
+                        </label>
+                        {file && (
+                          <div className='mt-3 flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/10'>
+                            <span className='text-xs text-slate-300 truncate max-w-[200px]'>{file.name}</span>
+                            <button
+                              onClick={uploadResume}
+                              disabled={uploading}
+                              className='px-3 py-1 rounded-md bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 disabled:opacity-50'
+                            >
+                              {uploading ? "Parsing..." : "Upload"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Launch Button */}
+          <motion.button
+            onClick={start}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            disabled={!role || starting || (useResume && !resume)}
+            className='mt-6 w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(99,102,241,0.4)] disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer'
+          >
+            {starting ? (
+              <span className='flex items-center gap-2 font-mono'>
+                <span className='w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin' />
+                INITIALIZING MULTI-AGENT SESSION...
+              </span>
+            ) : (
+              <>
+                <span>Launch Interview Simulation</span>
+                <FiArrowRight size={15} />
+              </>
+            )}
+          </motion.button>
+        </div>
+      </motion.div>
+    </div>
+  );
 }
 
-export default Step1setup
+export default Step1setup;
