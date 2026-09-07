@@ -63,50 +63,50 @@ export const login = async (req, res) => {
       60 * 60 * 24 * 7
     );
 
+    const isProduction = process.env.NODE_ENV === "production" && !req.headers.host?.includes("localhost");
+
     res.cookie("session", sessionId, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
 
     return res.json({ success: true, user });
   } catch (error) {
     console.error("Login server error:", error);
-    return res.status(500).json({
+    return res.status(401).json({
       success: false,
-      message: error.message || "Internal server error during login",
+      message: error.message || "Failed to authenticate",
     });
   }
 };
 
 export const logout = async (req, res) => {
   try {
-
     const sessionId = req.cookies?.session;
 
     if (sessionId) {
       await redis.del(`session:${sessionId}`);
     }
 
+    const isProduction = process.env.NODE_ENV === "production" && !req.headers.host?.includes("localhost");
+
     res.clearCookie("session", {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
     });
 
     return res.json({
       success: true,
       message: "Logged out successfully",
     });
-
   } catch (error) {
-
     return res.status(500).json({
       success: false,
       message: error.message,
     });
-
   }
 };
 export const useInterviewCoins = async (req, res) => {
