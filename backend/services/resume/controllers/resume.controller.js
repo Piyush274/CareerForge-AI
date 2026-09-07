@@ -34,10 +34,17 @@ export const uploadResume = async (req,res) => {
 
         const aiResponse = await resumeAgent(resumeText)
 
-        const cleaned = aiResponse
-            .replace(/```json/g, "")
-            .replace(/```/g, "")
+        let cleaned = aiResponse
+            .replace(/<think>[\s\S]*?<\/think>/gi, "")
+            .replace(/```json/gi, "")
+            .replace(/```/gi, "")
             .trim();
+
+        const firstBrace = cleaned.indexOf("{");
+        const lastBrace = cleaned.lastIndexOf("}");
+        if (firstBrace !== -1 && lastBrace !== -1) {
+            cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+        }
 
         const resumeData = JSON.parse(cleaned)
 
