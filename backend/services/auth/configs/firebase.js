@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import fs from "fs";
 import path from "path";

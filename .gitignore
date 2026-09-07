@@ -72,3 +72,13 @@ careerforgeai_roadmap.md
 # Monolith backend (managed in separate repo)
 backend-monolith/
 
+# Antigravity & Agent workspace configurations
+.agents/
+/.agents/
+/agents/
+
+# Monolith sync scripts and tools
+/scripts/sync*
+scripts/sync-to-monolith.js
+sync/
+*sync-to-monolith*

@@ -1,10 +1,9 @@
-import React from 'react'
 import { motion } from "motion/react"
 import { FiArrowLeft, FiArrowRight, FiBriefcase, FiCheck, FiCheckCircle, FiFileText, FiUploadCloud } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useCoins } from '../../apis/user.api'
+import { deductCoins } from '../../apis/user.api'
 import api from '../../utils/axios'
 import { setResume } from '../../redux/resumeSlice'
 import { startInterview } from '../../apis/interview.api'
@@ -28,12 +27,12 @@ function Step1setup({ user, setUser }) {
             setUploading(true)
             try {
                 
-            const coinResponse = await useCoins({ coins: 10, action: "resume-scorer" })
+            const coinResponse = await deductCoins({ coins: 10, action: "resume-scorer" })
 
             setUser((prev) => ({
                 ...prev, interviewCoin: coinResponse?.interviewCoin,
             }))
-            } catch (error) {
+            } catch {
                 setUploading(false)
                 alert("Failed to use coins.")
                 return;
@@ -66,11 +65,11 @@ function Step1setup({ user, setUser }) {
         }
 
         try {
-            const coinResponse = await useCoins({ coins: 50, action: "start-interview" })
+            const coinResponse = await deductCoins({ coins: 50, action: "start-interview" })
             setUser((prev) => ({
                 ...prev, interviewCoin: coinResponse?.interviewCoin,
             }))
-        } catch (error) {
+        } catch {
             setStarting(false)
             alert("Failed to use coins.")
             return;

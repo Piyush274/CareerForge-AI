@@ -20,28 +20,28 @@ function App() {
   const dispatch = useDispatch()
 
 
-  useEffect(()=>{
-
+  useEffect(() => {
     const getUser = async () => {
-      const data = await getCurrentUser()
-      setUser(data?.user)
-      setLoading(false)
-    }
+      const data = await getCurrentUser();
+      setUser(data?.user);
+      setLoading(false);
+    };
 
-    getUser()
+    getUser();
+  }, []);
 
-  },[])
+  useEffect(() => {
+    if (!user) return;
 
-  useEffect(()=>{
+    const getResumeData = async () => {
+      const result = await getResume();
+      if (result?.data) {
+        dispatch(setResume(result.data));
+      }
+    };
 
-    const getResumeData = async()=>{
-      const result = await getResume()
-      dispatch(setResume(result?.data))
-    }
-
-    getResumeData()
-
-  },[])
+    getResumeData();
+  }, [user, dispatch]);
 
 
   if(loading){

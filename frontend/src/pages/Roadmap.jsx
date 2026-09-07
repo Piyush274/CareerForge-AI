@@ -1,16 +1,16 @@
-import React from 'react'
 import { AnimatePresence, motion } from "motion/react"
 import { FiCheck, FiChevronDown, FiClock, FiFileText, FiSend, FiX, FiZap } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BsRocketTakeoff } from "react-icons/bs";
-import { useCoins } from '../apis/user.api'
+import { deductCoins } from '../apis/user.api'
 import api from '../utils/axios'
 import { useSelector } from 'react-redux'
-import { useEffect } from 'react'
 import RoadmapResult from '../components/roadmap/RoadmapResult'
+
 const PACKAGE_OPTIONS = ["10 LPA", "15 LPA", "20 LPA", "30 LPA", "40 LPA"];
-function Roadmap({ user, setUser }) {
+
+function Roadmap({ setUser }) {
     const navigate = useNavigate()
     const [historyOpen, setHistoryOpen] = useState(false);
     const [roadmap, setRoadmap] = useState(null);
@@ -25,36 +25,30 @@ function Roadmap({ user, setUser }) {
 
     const { resume } = useSelector((state) => state.resume)
 
+    const getAllRoadmaps = async () => {
+        setHistoryLoading(true)
+        try {
+            const response = await api.get("/api/roadmap/all")
+            setHistory(response.data.data)
+            setHistoryLoading(false)
+        } catch (err) {
+            console.error(err)
+            setHistoryLoading(false)
+        }
+    }
 
     useEffect(() => {
-
         getAllRoadmaps()
     }, [])
-
-    const getAllRoadmaps = async () => {
-            setHistoryLoading(true)
-            try {
-                const response = await api.get("/api/roadmap/all")
-                console.log(response.data)
-                setHistory(response.data.data)
-                setHistoryLoading(false)
-            } catch (error) {
-                console.log(error)
-                setHistoryLoading(false)
-            }
-        }
-
 
     const getRoadmapById = async (id) => {
         try {
             const response = await api.get(`/api/roadmap/${id}`)
-            console.log(response.data)
             setRoadmap(response.data.data)
-        } catch (error) {
-            console.log(error)
+        } catch (err) {
+            console.error(err)
         }
     }
-
 
     const handleGenerate = async () => {
         if (!role.trim() || loading) return;
@@ -62,11 +56,13 @@ function Roadmap({ user, setUser }) {
         setError("");
         try {
             try {
-                const coinResponse = await useCoins({ coins: 20, action: "roadmap-builder" })
-                setUser((prev) => ({
-                    ...prev, interviewCoin: coinResponse?.interviewCoin,
-                }))
-            } catch (error) {
+                const coinResponse = await deductCoins({ coins: 20, action: "roadmap-builder" })
+                if (setUser) {
+                    setUser((prev) => ({
+                        ...prev, interviewCoin: coinResponse?.interviewCoin,
+                    }))
+                }
+            } catch {
                 setLoading(false)
                 alert("Failed to use coins.")
                 return;
@@ -79,14 +75,13 @@ function Roadmap({ user, setUser }) {
                 resume
             })
             setRoadmap(response.data.data)
-getAllRoadmaps()
+            getAllRoadmaps()
             setLoading(false)
 
-        } catch (error) {
-            console.error("Failed to generate roadmap:", error);
+        } catch (err) {
+            console.error("Failed to generate roadmap:", err);
             setError("Something went wrong while generating your roadmap. Please try again.");
             setLoading(false)
-
         }
     }
 

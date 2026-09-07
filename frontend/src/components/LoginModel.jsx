@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { FiX, FiMail, FiLock, FiUser, FiEye, FiEyeOff, FiAlertCircle } from "react-icons/fi";
+import { FiX, FiMail, FiLock, FiUser, FiEye, FiEyeOff, FiAlertCircle, FiShield } from "react-icons/fi";
+import { GiArtificialHive } from "react-icons/gi";
+import { FaArrowRight } from "react-icons/fa6";
 import { motion, AnimatePresence } from "motion/react";
 import { FcGoogle } from "react-icons/fc";
 import { 
@@ -89,64 +91,94 @@ function LoginModel({ onClose, setUser }) {
         if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
             setError('Invalid email or password.');
         } else if (code === 'auth/email-already-in-use') {
-            setError('An account with this email already exists. Please sign in.');
+            setError('An account with this email already exists. Please switch to Sign In.');
         } else if (code === 'auth/invalid-email') {
             setError('Please enter a valid email address.');
         } else if (code === 'auth/weak-password') {
             setError('Password is too weak. Please use at least 6 characters.');
         } else if (code === 'auth/popup-closed-by-user') {
-            setError('Google sign-in popup was closed.');
+            setError('Sign-in popup was closed before completing.');
+        } else if (err.response?.data?.message) {
+            setError(err.response.data.message);
         } else {
             setError(err.message || 'Authentication failed. Please try again.');
         }
     };
 
     return (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md px-4'>
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md px-4'>
             <motion.div 
-                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                initial={{ opacity: 0, scale: 0.96, y: 8 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                className='relative w-full max-w-md bg-[#0A0A0A]/90 backdrop-blur-2xl border border-white/10 rounded-2xl overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.35)]'
+                exit={{ opacity: 0, scale: 0.96, y: 8 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className='relative w-full max-w-md bg-[#0D0D0E] border border-white/10 rounded-2xl overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.6)]'
             >
-                {/* Glow Overlay */}
-                <div className='absolute inset-0 bg-gradient-to-br from-indigo-500/[0.08] via-transparent to-purple-500/[0.05] pointer-events-none' />
+                {/* Subtle Ambient Radial Highlight */}
+                <div className='absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-32 bg-white/[0.06] blur-3xl pointer-events-none rounded-full' />
 
-                <div className='relative p-7'>
+                <div className='relative p-6 sm:p-7'>
                     {/* Close Button */}
                     <button
                         onClick={onClose}
-                        className='absolute top-4 right-4 text-white/40 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5'
+                        className='absolute top-4 right-4 text-white/40 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5 cursor-pointer'
+                        aria-label="Close modal"
                     >
-                        <FiX size={18} />
+                        <FiX size={17} />
                     </button>
 
-                    {/* Header */}
-                    <div className='text-center mb-6'>
-                        <h2 className='text-xl font-bold text-white tracking-tight'>
-                            {isSignUp ? 'Create your account' : 'Welcome back to'}{' '}
-                            <span className='bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent'>
-                                CareerForge AI
-                            </span>
+                    {/* Brand Header */}
+                    <div className='flex flex-col items-center text-center mb-5'>
+                        <div className='w-10 h-10 rounded-xl bg-[#0A0A0A] border border-white/15 flex items-center justify-center shadow-[0_4px_16px_rgba(0,0,0,0.4)] mb-3'>
+                            <GiArtificialHive size={22} className='text-white' />
+                        </div>
+                        <h2 className='text-lg font-bold text-white tracking-tight'>
+                            CareerForge AI
                         </h2>
-                        <p className='text-white/45 text-xs mt-1.5'>
+                        <p className='text-white/45 text-xs mt-1 max-w-[280px]'>
                             {isSignUp 
-                                ? 'Sign up to accelerate your interview preparation' 
-                                : 'Sign in to continue your AI interview journey'}
+                                ? 'Create an account to start AI mock interviews & roadmaps' 
+                                : 'Sign in to continue your interview preparation'}
                         </p>
+                    </div>
+
+                    {/* Segmented Tab Switcher */}
+                    <div className='flex p-1 mb-5 rounded-xl bg-white/[0.04] border border-white/8'>
+                        <button
+                            type='button'
+                            onClick={() => { setIsSignUp(false); setError(''); }}
+                            className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                                !isSignUp 
+                                    ? 'bg-white text-[#0A0A0A] shadow-[0_2px_8px_rgba(0,0,0,0.25)]' 
+                                    : 'text-white/50 hover:text-white'
+                            }`}
+                        >
+                            Sign In
+                        </button>
+                        <button
+                            type='button'
+                            onClick={() => { setIsSignUp(true); setError(''); }}
+                            className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                                isSignUp 
+                                    ? 'bg-white text-[#0A0A0A] shadow-[0_2px_8px_rgba(0,0,0,0.25)]' 
+                                    : 'text-white/50 hover:text-white'
+                            }`}
+                        >
+                            Create Account
+                        </button>
                     </div>
 
                     {/* Error Alert */}
                     <AnimatePresence>
                         {error && (
                             <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className='mb-4 flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs'
+                                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                animate={{ opacity: 1, height: 'auto', marginBottom: 16 }}
+                                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                className='flex items-center gap-2.5 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs'
                             >
                                 <FiAlertCircle className='shrink-0' size={15} />
-                                <span>{error}</span>
+                                <span className='leading-snug'>{error}</span>
                             </motion.div>
                         )}
                     </AnimatePresence>
@@ -156,118 +188,104 @@ function LoginModel({ onClose, setUser }) {
                         type='button'
                         onClick={handleGoogleAuth}
                         disabled={loading}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className='w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl border border-white/15 bg-white/[0.07] backdrop-blur-md hover:border-white/30 hover:bg-white/[0.12] transition-all disabled:opacity-50 cursor-pointer'
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        className='w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl border border-white/12 bg-white/[0.05] hover:bg-white/[0.09] hover:border-white/20 transition-all disabled:opacity-50 cursor-pointer text-white font-medium text-xs sm:text-sm shadow-[0_2px_10px_rgba(0,0,0,0.2)]'
                     >
-                        <FcGoogle size={19} />
-                        <span className='text-white font-medium text-sm'>
-                            Continue with Google
-                        </span>
+                        <FcGoogle size={18} />
+                        <span>Continue with Google</span>
                     </motion.button>
 
                     {/* Divider */}
-                    <div className='relative flex items-center justify-center my-5'>
-                        <div className='border-t border-white/10 w-full'></div>
-                        <span className='bg-[#0A0A0A] px-3 text-[11px] font-medium text-white/35 uppercase tracking-wider'>
-                            Or with email
+                    <div className='relative flex items-center justify-center my-4.5'>
+                        <div className='border-t border-white/10 w-full' />
+                        <span className='absolute bg-[#0D0D0E] px-3 text-[10px] font-semibold text-white/35 uppercase tracking-wider whitespace-nowrap'>
+                            or with email
                         </span>
-                        <div className='border-t border-white/10 w-full'></div>
                     </div>
 
                     {/* Email / Password Form */}
-                    <form onSubmit={handleEmailAuth} className='space-y-3.5'>
+                    <form onSubmit={handleEmailAuth} className='space-y-3'>
                         {isSignUp && (
                             <motion.div 
-                                initial={{ opacity: 0, y: -6 }}
+                                initial={{ opacity: 0, y: -4 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 className='relative'
                             >
-                                <FiUser className='absolute left-3.5 top-1/2 -translate-y-1/2 text-white/35' size={16} />
+                                <FiUser className='absolute left-3.5 top-1/2 -translate-y-1/2 text-white/35' size={15} />
                                 <input
                                     type='text'
                                     placeholder='Full Name'
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className='w-full pl-10 pr-4 py-2.5 text-sm bg-white/[0.04] border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-indigo-500/60 focus:bg-white/[0.07] transition-all'
+                                    autoComplete='name'
+                                    required={isSignUp}
+                                    className='w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-white/[0.04] border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-white/30 focus:bg-white/[0.07] transition-all'
                                 />
                             </motion.div>
                         )}
 
                         <div className='relative'>
-                            <FiMail className='absolute left-3.5 top-1/2 -translate-y-1/2 text-white/35' size={16} />
+                            <FiMail className='absolute left-3.5 top-1/2 -translate-y-1/2 text-white/35' size={15} />
                             <input
                                 type='email'
                                 placeholder='Email address'
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
+                                autoComplete='email'
                                 required
-                                className='w-full pl-10 pr-4 py-2.5 text-sm bg-white/[0.04] border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-indigo-500/60 focus:bg-white/[0.07] transition-all'
+                                className='w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-white/[0.04] border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-white/30 focus:bg-white/[0.07] transition-all'
                             />
                         </div>
 
                         <div className='relative'>
-                            <FiLock className='absolute left-3.5 top-1/2 -translate-y-1/2 text-white/35' size={16} />
+                            <FiLock className='absolute left-3.5 top-1/2 -translate-y-1/2 text-white/35' size={15} />
                             <input
                                 type={showPassword ? 'text' : 'password'}
                                 placeholder='Password (min. 6 characters)'
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                autoComplete={isSignUp ? 'new-password' : 'current-password'}
                                 required
-                                className='w-full pl-10 pr-10 py-2.5 text-sm bg-white/[0.04] border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-indigo-500/60 focus:bg-white/[0.07] transition-all'
+                                className='w-full pl-10 pr-10 py-2.5 text-xs sm:text-sm bg-white/[0.04] border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-white/30 focus:bg-white/[0.07] transition-all'
                             />
                             <button
                                 type='button'
                                 onClick={() => setShowPassword(!showPassword)}
-                                className='absolute right-3.5 top-1/2 -translate-y-1/2 text-white/35 hover:text-white/70 transition-colors'
+                                className='absolute right-3.5 top-1/2 -translate-y-1/2 text-white/35 hover:text-white/70 transition-colors p-0.5'
+                                aria-label={showPassword ? "Hide password" : "Show password"}
                             >
-                                {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                                {showPassword ? <FiEyeOff size={15} /> : <FiEye size={15} />}
                             </button>
                         </div>
 
+                        {/* Submit Button */}
                         <motion.button
                             type='submit'
                             disabled={loading}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className='w-full py-2.5 px-4 mt-2 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-medium text-sm shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:opacity-95 transition-all disabled:opacity-50 cursor-pointer'
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.99 }}
+                            className='w-full py-2.5 px-4 mt-2 rounded-xl bg-white text-[#0A0A0A] font-bold text-xs sm:text-sm shadow-[0_4px_16px_rgba(255,255,255,0.12)] hover:bg-neutral-200 transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2'
                         >
                             {loading ? (
-                                <span className='inline-flex items-center gap-2'>
-                                    <span className='w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin'></span>
-                                    Processing...
+                                <span className='inline-flex items-center gap-2 text-[#0A0A0A]'>
+                                    <span className='w-3.5 h-3.5 border-2 border-black/20 border-t-black rounded-full animate-spin'></span>
+                                    Authenticating...
                                 </span>
-                            ) : isSignUp ? (
-                                'Create Account'
                             ) : (
-                                'Sign In with Email'
+                                <>
+                                    <span>{isSignUp ? 'Create Account' : 'Sign In with Email'}</span>
+                                    <FaArrowRight size={12} />
+                                </>
                             )}
                         </motion.button>
                     </form>
-
-                    {/* Toggle between Sign In and Sign Up */}
-                    <div className='mt-5 text-center'>
-                        <p className='text-xs text-white/50'>
-                            {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
-                            <button
-                                type='button'
-                                onClick={() => {
-                                    setIsSignUp(!isSignUp);
-                                    setError('');
-                                }}
-                                className='text-indigo-400 hover:text-indigo-300 font-medium underline underline-offset-2 transition-colors ml-1 cursor-pointer'
-                            >
-                                {isSignUp ? 'Sign In' : 'Sign Up'}
-                            </button>
-                        </p>
-                    </div>
                 </div>
 
-                {/* Footer */}
-                <div className='relative border-t border-white/10 bg-black/40 py-3 px-4 text-center'>
-                    <p className='text-white/30 text-[11px]'>
-                        Secure authentication powered by Firebase
-                    </p>
+                {/* Footer Security Badge */}
+                <div className='border-t border-white/8 bg-black/40 py-2.5 px-4 flex items-center justify-center gap-1.5 text-white/30 text-[11px]'>
+                    <FiShield size={12} className='text-white/40' />
+                    <span>End-to-end encrypted authentication</span>
                 </div>
             </motion.div>
         </div>
