@@ -9,11 +9,37 @@ import { getCurrentUser } from "./controllers/user.controller.js"
 import { isAuth } from "./middleware/isAuth.js"
 import { proxyWithHeaders } from "./utils/proxyWithHeaders.js"
 const app = express()
-app.use(express.json())
+const configuredOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(",").map((url) => url.trim())
+  : [];
+
+const defaultAllowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:3000",
+  "https://career-forge-ai-eight.vercel.app",
+];
+
+const allAllowedOrigins = [...new Set([...defaultAllowedOrigins, ...configuredOrigins])];
 
 app.use(cors({
-    origin:process.env.FRONTEND_URL,
-    credentials:true
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allAllowedOrigins.includes(origin) || allAllowedOrigins.includes("*")) {
+        return callback(null, true);
+      }
+      if (
+        origin.endsWith(".vercel.app") ||
+        origin.endsWith(".onrender.com") ||
+        origin.includes("localhost") ||
+        origin.includes("127.0.0.1") ||
+        process.env.NODE_ENV !== "production"
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, false);
+    },
+    credentials: true
 }))
 
 app.use(morgan("dev"))
